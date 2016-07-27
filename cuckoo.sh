@@ -31,10 +31,18 @@ my_ip=$(ip route show | awk '(NR == 2) {print $9}')
 function deps
 {
 
-echo -e '\e[35m[+] Installing Dependencies \e[0m'
+echo -e '\e[35m[+] APT Update \e[0m'
 
-	#Update, upgrade, dist-upgrade, and autoremove
-	apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y && apt-get autoremove -y >/dev/null 2>&1
+	apt-get update -y >/dev/null 2>&1
+
+echo -e '\e[35m[+] APT Upgrade \e[0m'
+	apt-get upgrade -y >/dev/null 2>&1
+
+echo -e '\e[35m[+] APT Dist-Upgrade and Autoremove \e[0m'
+	apt-get dist-upgrade -y >/dev/null 2>&1
+	apt-get autoremove -y >/dev/null 2>&1
+
+echo -e '\e[35m[+] Installing Dependencies \e[0m'
 
 	#Basic dependencies
 	apt-get install mongodb python python-dev python-pip python-m2crypto swig -y >/dev/null 2>&1
@@ -57,7 +65,7 @@ echo -e '\e[35m[+] Installing Yara \e[0m'
 
 	#Configure Yara for Cuckoo and Magic and then install
 	cd /opt
-	git clone https://github.com/plusvic/yara.git
+	git clone https://github.com/plusvic/yara.git >/dev/null 2>&1
 	cd yara
 	./bootstrap.sh >/dev/null 2>&1
 	./configure --enable-cuckoo --enable-magic >/dev/null 2>&1
@@ -81,7 +89,7 @@ echo -e '\e[35m[+] Installing Malheur \e[0m'
 
 	#Install malheur
 	cd /opt
-	git clone https://github.com/rieck/malheur.git
+	git clone https://github.com/rieck/malheur.git >/dev/null 2>&1
 	cd malheur
 	./bootstrap >/dev/null 2>&1
 	./configure --prefix=/usr >/dev/null 2>&1
@@ -102,7 +110,7 @@ echo -e '\e[35m[+] Installing PyV8 Javascript Engine (this will take some time) 
 
 	#Install PyV8
 	cd /opt
-	git clone https://github.com/buffer/pyv8.git
+	git clone https://github.com/buffer/pyv8.git >/dev/null 2>&1
 	cd pyv8
 	python setup.py build >/dev/null 2>&1
 	python setup.py install >/dev/null 2>&1
@@ -122,7 +130,7 @@ echo -e '\e[35m[+] Installing ETUpdate \e[0m'
  
 	#Install ETUpdate
 	cd /opt
-	git clone https://github.com/seanthegeek/etupdate.git
+	git clone https://github.com/seanthegeek/etupdate.git >/dev/null 2>&1
 	cp etupdate/etupdate /usr/sbin
 
 	#Download rules
@@ -215,7 +223,7 @@ echo -e '\e[35m[+] Installing Modified version of Cuckoo \e[0m'
 	su - cuckoo <<EOF
 cd
 wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar
-git clone https://github.com/daniel-gallagher/cuckoo-modified.git
+git clone https://github.com/daniel-gallagher/cuckoo-modified.git >/dev/null 2>&1
 mkdir vmshared
 cp cuckoo-modified/agent/agent.py vmshared/agent.pyw
 EOF
@@ -284,9 +292,11 @@ echo -e '\e[35m[+] Creating Self-signed SSL Certificate \e[0m'
 
 	#Generate self-signed certificate
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/cuckoo.key -out /etc/nginx/ssl/cuckoo.crt -subj "/C=XX/ST=XX/L=XX/O=IT/CN=$my_ip"
-	
+
+echo -e '\e[35m[+] Generating Diffie-Hellman (DH) parameters. This takes a long time! \e[0m'
+
 	#Generate Diffie-Hellman (DH) parameters. This takes a long time!
-	openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
+	openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >/dev/null 2>&1
 
 	#Secure SSL keys
 	chown -R root:www-data /etc/nginx/ssl
@@ -304,7 +314,7 @@ echo -e '\e[35m[+] Installing Inetsim \e[0m'
 
 	#Install inetsim
 	cd /tmp
-	wget http://www.inetsim.org/debian/binary/inetsim_1.2.5-1_all.deb
+	wget http://www.inetsim.org/debian/binary/inetsim_1.2.5-1_all.deb >/dev/null 2>&1
 
 	#Install additional inetsim dependencies
 	apt-get install libcgi-fast-perl libcgi-pm-perl libdigest-hmac-perl libfcgi-perl libio-multiplex-perl libio-socket-inet6-perl libipc-shareable-perl libnet-cidr-perl libnet-dns-perl libnet-ip-perl libnet-server-perl libsocket6-perl liblog-log4perl-perl -y >/dev/null 2>&1
@@ -345,7 +355,7 @@ echo -e '\e[35m[+] Installing Routetor \e[0m'
 
 	#Install cuckoo scripts to utilize tor
 	cd /opt
-	git clone https://github.com/seanthegeek/routetor.git
+	git clone https://github.com/seanthegeek/routetor.git >/dev/null 2>&1
 	cd routetor
 	cp *tor* /usr/sbin
 	/usr/sbin/routetor &
@@ -392,6 +402,9 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 	#/usr/sbin/cuckooboot
 
 echo -e '\e[35m[+] Installation Complete! \e[0m'
+echo -e '\e[93m[+] ***Need To Do: Build sandbox VM*** \e[0m'
+echo -e '\e[93m[+] ***Need To Do: Configure "kvm.conf" for new VM \e[0m'
+echo -e '\e[93m[+] ***Need To Do: Set up nginx auth user\e[0m'
 }
 
 
