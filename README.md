@@ -4,7 +4,7 @@ The script "cuckoo.sh" will perform a full base install of the modified Cuckoo s
 -Usage-
 ```
 sudo chmod +x cuckoo.sh
-sudo ./cuckoo <path> <db_pass>
+sudo ./cuckoo <cuckoo_path> <db_pass>
 ```
 
 
