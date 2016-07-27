@@ -17,8 +17,12 @@ function usage
 }
 
 #Variables defined by options at runtime
-cuckoo_path=${1:-/opt}
-passwd=${2:-$rand_passwd}
+cuckoo_path=$1
+passwd=$2
+
+#cuckoo_path=${1:-/opt} #Default path: /opt
+#passwd=${2:-$rand_passwd} #Default password is randomish
+
 rand_passwd=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 
 cuckoo_passwd=$passwd
@@ -124,7 +128,7 @@ echo -e '\e[35m[+] Installing Suricata \e[0m'
 
 	#Install Suricata
 	apt-get install suricata -y >/dev/null 2>&1
-	echo "alert http any any -> any any (msg:\"FILE store all\"; filestore; noalert; sid:15; rev:1;)"  | sudo tee /etc/suricata/rules/cuckoo.rules
+	echo "alert http any any -> any any (msg:\"FILE store all\"; filestore; noalert; sid:15; rev:1;)"  | sudo tee /etc/suricata/rules/cuckoo.rules >/dev/null 2>&1
 
 echo -e '\e[35m[+] Installing ETUpdate \e[0m'
  
@@ -134,7 +138,7 @@ echo -e '\e[35m[+] Installing ETUpdate \e[0m'
 	cp etupdate/etupdate /usr/sbin
 
 	#Download rules
-	/usr/sbin/etupdate -V 
+	/usr/sbin/etupdate -V >/dev/null 2>&1
 
 }
 
@@ -150,9 +154,9 @@ echo -e '\e[35m[+] Installing PostgreSQL \e[0m'
 echo -e '\e[35m[+] Configure PostgreSQL DB \e[0m'
 
 	su - postgres <<EOF
-psql -c "CREATE USER cuckoo WITH PASSWORD $db_passwd;"
-psql -c "CREATE DATABASE cuckoo;"
-psql -c "GRANT ALL PRIVILEGES ON DATABASE cuckoo to cuckoo;"
+psql -c "CREATE USER cuckoo WITH PASSWORD $db_passwd;" >/dev/null 2>&1
+psql -c "CREATE DATABASE cuckoo;" >/dev/null 2>&1
+psql -c "GRANT ALL PRIVILEGES ON DATABASE cuckoo to cuckoo;" >/dev/null 2>&1
 EOF
 
 }
@@ -170,10 +174,10 @@ echo -e '\e[35m[+] Installing KVM \e[0m'
 	usermod -a -G libvirtd $USER
 
 	#Deactivate default network
-	virsh net-destroy default
+	virsh net-destroy default >/dev/null 2>&1
 
 	#Remove default network from libvirt configuration
-	virsh net-undefine default
+	virsh net-undefine default >/dev/null 2>&1
 
 	#Create cuckoo network configuration file
 	cat >/tmp/cuckoo_net.xml <<EOF
@@ -190,13 +194,13 @@ echo -e '\e[35m[+] Installing KVM \e[0m'
 EOF
 
 	#Create new cuckoo network from xml configuration
-	virsh net-define --file /tmp/cuckoo_net.xml
+	virsh net-define --file /tmp/cuckoo_net.xml >/dev/null 2>&1
 
 	#Set cuckoo network to autostart
-	virsh net-autostart cuckoo
+	virsh net-autostart cuckoo >/dev/null 2>&1
 
 	#Start cuckoo network
-	virsh net-start cuckoo
+	virsh net-start cuckoo >/dev/null 2>&1
 
 }
 
@@ -206,8 +210,8 @@ function create_cuckoo_user
 echo -e '\e[35m[+] Creating cuckoo user \e[0m'
 
 	#Creates cuckoo user and sets password to DB password for now
-	adduser cuckoo --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
-	echo "cuckoo:$cuckoo_passwd" | chpasswd
+	adduser cuckoo --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password >/dev/null 2>&1
+	echo "cuckoo:$cuckoo_passwd" | chpasswd >/dev/null 2>&1
 	usermod -L cuckoo
 	usermod -a -G kvm cuckoo
 	usermod -a -G libvirtd cuckoo
@@ -222,7 +226,7 @@ echo -e '\e[35m[+] Installing Modified version of Cuckoo \e[0m'
 	#Option to install modified version
 	su - cuckoo <<EOF
 cd
-wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar
+wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar >/dev/null 2>&1
 git clone https://github.com/daniel-gallagher/cuckoo-modified.git >/dev/null 2>&1
 mkdir vmshared
 cp cuckoo-modified/agent/agent.py vmshared/agent.pyw
@@ -237,7 +241,7 @@ echo -e '\e[35m[+] Installing Cuckoo signatures \e[0m'
 
 	su - cuckoo <<EOF
 cd $cuckoo_path/cuckoo/utils
-./community.py -afw
+./community.py -afw >/dev/null 2>&1
 EOF
 
 echo -e '\e[35m[+] Modifing Cuckoo config \e[0m'
@@ -272,14 +276,6 @@ echo -e '\e[35m[+] Configuring nginx \e[0m'
 	#Enable cuckoo nginx config
 	ln -s /etc/nginx/sites-available/cuckoo /etc/nginx/sites-enabled/cuckoo
 
-#!!!FINISH!!! #Create nginx user for web auth
-	#htpasswd -c /etc/nginx/htpasswd $USER
-
-	#Secure htpasswd file
-	#chown root:www-data /etc/nginx/htpasswd
-	#chmod u=rw,g=r,o= /etc/nginx/htpasswd
-
-
 }
 
 function self_ssl
@@ -291,7 +287,7 @@ echo -e '\e[35m[+] Creating Self-signed SSL Certificate \e[0m'
 	mkdir /etc/nginx/ssl
 
 	#Generate self-signed certificate
-	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/cuckoo.key -out /etc/nginx/ssl/cuckoo.crt -subj "/C=XX/ST=XX/L=XX/O=IT/CN=$my_ip"
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/cuckoo.key -out /etc/nginx/ssl/cuckoo.crt -subj "/C=XX/ST=XX/L=XX/O=IT/CN=$my_ip" >/dev/null 2>&1
 
 echo -e '\e[35m[+] Generating Diffie-Hellman (DH) parameters. This takes a long time! \e[0m'
 
@@ -391,12 +387,12 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 	chmod +x  /usr/sbin/cuckooboot
 
 	#Modify startup script to fit local environment
-	sed -i -e "s@CUCKOO_PATH="/opt/cuckoo"@CUCKOO_PATH="$cuckoo_path"@" /usr/sbin/cuckooboot
+	sed -i -e "s@CUCKOO_PATH="/opt/cuckoo"@CUCKOO_PATH="$cuckoo_path/cuckoo"@" /usr/sbin/cuckooboot
 
 	#Add startup crontab entries
-	(crontab -l -u cuckoo; echo "46 * * * * /usr/sbin/etupdate")| crontab -u cuckoo -
-	(crontab -l -u cuckoo; echo "@reboot /usr/sbin/routetor")| crontab -u cuckoo -
-	(crontab -l -u cuckoo; echo "@reboot /usr/sbin/cuckooboot")| crontab -u cuckoo -
+	(crontab -l -u cuckoo; echo "46 * * * * /usr/sbin/etupdate")| crontab -u cuckoo - >/dev/null 2>&1
+	(crontab -l -u cuckoo; echo "@reboot /usr/sbin/routetor")| crontab -u cuckoo - >/dev/null 2>&1
+	(crontab -l -u cuckoo; echo "@reboot /usr/sbin/cuckooboot")| crontab -u cuckoo - >/dev/null 2>&1
 
 	#Run cuckoo
 	#/usr/sbin/cuckooboot
