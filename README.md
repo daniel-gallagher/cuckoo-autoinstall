@@ -1,6 +1,13 @@
 # cuckoo-autoinstall
 The script "cuckoo.sh" will perform a full base install of the modified Cuckoo sandbox following the steps listed here: https://infosecspeakeasy.org/t/howto-build-a-cuckoo-sandbox/27
 
+-Usage-
+```
+sudo chmod +x cuckoo.sh
+sudo ./cuckoo <path> <db_pass>
+```
+
+
 Steps that need to take place after running script:
 
 -Build sandbox VMs using virt-manager
