@@ -83,8 +83,8 @@ echo -e '\e[35m[+] Installing ClamAV \e[0m'
 
 	#Install ClamAV
 	apt-get install clamav clamav-daemon clamav-freshclam -y >/dev/null 2>&1
-    
-echo -e '\e[35m[+] Installing Pydeep \e[0m'    
+
+echo -e '\e[35m[+] Installing Pydeep \e[0m'
 
 	#Install Pydeep
 	pip install git+https://github.com/kbandla/pydeep.git >/dev/null 2>&1
@@ -204,6 +204,20 @@ EOF
 
 }
 
+function virtualbox
+{
+
+	#Add virtualbox repository
+	apt-add-repository "deb http://download.virtualbox.org/virtualbox/debian vivid contrib"
+
+	#Add repository key
+	wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
+
+	#Update apt and install virtualbox
+	apt-get update && apt-get install virtualbox-5.0
+
+}
+
 function create_cuckoo_user
 {
 
@@ -259,22 +273,22 @@ echo -e '\e[35m[+] Installing mainstream version of Cuckoo \e[0m'
 	#Option to install original version
 	su - cuckoo <<EOF
 cd
-wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar >/dev/null 2>&1
-git clone https://github.com/cuckoosandbox/cuckoo.git >/dev/null 2>&1
+wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar
+git clone https://github.com/cuckoosandbox/cuckoo.git
 mkdir vmshared
 cp cuckoo/agent/agent.py vmshared/agent.pyw
 EOF
 
 	chmod ug=rwX,o=rX /home/cuckoo/vmshared
 	mv /home/cuckoo/cuckoo $cuckoo_path/cuckoo
-	pip install -r $cuckoo_path/cuckoo/requirements.txt >/dev/null 2>&1
+	pip install -r $cuckoo_path/cuckoo/requirements.txt
 	cp $cuckoo_path/cuckoo/extra/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
 
 echo -e '\e[35m[+] Installing Cuckoo signatures \e[0m'
 
 	su - cuckoo <<EOF
 cd $cuckoo_path/cuckoo/utils
-./community.py -afw >/dev/null 2>&1
+./community.py -afw
 EOF
 
 echo -e '\e[35m[+] Modifing Cuckoo config \e[0m'
@@ -451,6 +465,7 @@ fi
 deps
 postgres
 kvm
+#virtualbox
 create_cuckoo_user
 cuckoo_mod
 #cuckoo_orig
