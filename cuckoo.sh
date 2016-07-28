@@ -9,7 +9,7 @@
 
 function usage
 {
-	echo 'Usage: $0 <path> <password> <ip>' 
+	echo "Usage: $0 <path> <password> <ip>" 
 	#echo '---Optional Arguments---'
 	echo 'Cuckoo Install Path -> Example /opt' #option 1
 	echo 'Database Password -> PostgreSQL password' #option 2
