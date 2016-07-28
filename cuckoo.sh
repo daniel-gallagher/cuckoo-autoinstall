@@ -161,7 +161,7 @@ EOF
 
 }
 
-function machinery
+function kvm
 {
 
 echo -e '\e[35m[+] Installing KVM \e[0m'
@@ -218,10 +218,10 @@ echo -e '\e[35m[+] Creating cuckoo user \e[0m'
 	usermod -a -G cuckoo $USER
 }
 
-function cuckoo_mod_install
+function cuckoo_mod
 {
 
-echo -e '\e[35m[+] Installing Modified version of Cuckoo \e[0m'
+echo -e '\e[35m[+] Installing modified version of Cuckoo \e[0m'
 
 	#Option to install modified version
 	su - cuckoo <<EOF
@@ -234,6 +234,39 @@ EOF
 
 	chmod ug=rwX,o=rX /home/cuckoo/vmshared
 	mv /home/cuckoo/cuckoo-modified $cuckoo_path/cuckoo
+	pip install -r $cuckoo_path/cuckoo/requirements.txt >/dev/null 2>&1
+	cp $cuckoo_path/cuckoo/extra/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
+
+echo -e '\e[35m[+] Installing Cuckoo signatures \e[0m'
+
+	su - cuckoo <<EOF
+cd $cuckoo_path/cuckoo/utils
+./community.py -afw >/dev/null 2>&1
+EOF
+
+echo -e '\e[35m[+] Modifing Cuckoo config \e[0m'
+
+	sed -i -e "s@connection =@connection = postgresql://cuckoo:$passwd\@localhost:5432/cuckoo@" $cuckoo_path/cuckoo/conf/cuckoo.conf
+
+	chown -R cuckoo:cuckoo $cuckoo_path/cuckoo
+}
+
+function cuckoo_orig
+{
+
+echo -e '\e[35m[+] Installing mainstream version of Cuckoo \e[0m'
+
+	#Option to install original version
+	su - cuckoo <<EOF
+cd
+wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar >/dev/null 2>&1
+git clone https://github.com/cuckoosandbox/cuckoo.git >/dev/null 2>&1
+mkdir vmshared
+cp cuckoo/agent/agent.py vmshared/agent.pyw
+EOF
+
+	chmod ug=rwX,o=rX /home/cuckoo/vmshared
+	mv /home/cuckoo/cuckoo $cuckoo_path/cuckoo
 	pip install -r $cuckoo_path/cuckoo/requirements.txt >/dev/null 2>&1
 	cp $cuckoo_path/cuckoo/extra/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
 
@@ -417,9 +450,10 @@ fi
 
 deps
 postgres
-machinery
+kvm
 create_cuckoo_user
-cuckoo_mod_install
+cuckoo_mod
+#cuckoo_orig
 nginx
 self_ssl
 misc_apps
