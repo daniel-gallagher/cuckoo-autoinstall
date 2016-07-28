@@ -208,13 +208,20 @@ function virtualbox
 {
 
 	#Add virtualbox repository
-	apt-add-repository "deb http://download.virtualbox.org/virtualbox/debian vivid contrib"
+	apt-add-repository "deb http://download.virtualbox.org/virtualbox/debian xenial contrib"
 
 	#Add repository key
+	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | apt-key add -
 	wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -
 
-	#Update apt and install virtualbox
-	apt-get update && apt-get install virtualbox-5.0
+	#Update apt packages
+	apt-get update -y
+
+	#Install virtualbox
+	apt-get install virtualbox-5.1 -y
+
+	#Install dkms package
+	apt-get install dkms -y
 
 }
 
