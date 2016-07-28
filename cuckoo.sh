@@ -9,28 +9,28 @@
 
 function usage
 {
-	echo 'Usage: $0 <path> <password>' 
-	echo '---Optional Arguments---'
+	echo 'Usage: $0 <path> <password> <ip>' 
+	#echo '---Optional Arguments---'
 	echo 'Cuckoo Install Path -> Example /opt' #option 1
 	echo 'Database Password -> PostgreSQL password' #option 2
+	echo 'Public IP -> For web console' #option 3
 	exit
 }
 
 #Variables defined by options at runtime
 cuckoo_path=$1
 passwd=$2
+my_ip=$3
+rand_passwd=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 
 #cuckoo_path=${1:-/opt} #Default path: /opt
 #passwd=${2:-$rand_passwd} #Default password is randomish
 
-rand_passwd=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
-
 cuckoo_passwd=$passwd
 db_passwd=\'$passwd\'
 
-
 #Additional variables that might be used
-my_ip=$(ip route show | awk '(NR == 2) {print $9}')
+#my_ip=$(ip route show | awk '(NR == 2) {print $9}')
 
 function deps
 {
@@ -289,7 +289,7 @@ echo -e '\e[35m[+] Creating Self-signed SSL Certificate \e[0m'
 	#Generate self-signed certificate
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/cuckoo.key -out /etc/nginx/ssl/cuckoo.crt -subj "/C=XX/ST=XX/L=XX/O=IT/CN=$my_ip" >/dev/null 2>&1
 
-echo -e '\e[35m[+] Generating Diffie-Hellman (DH) parameters. This takes a long time! \e[0m'
+echo -e '\e[35m[+] Generating Diffie-Hellman (DH) parameters (this will take some time) \e[0m'
 
 	#Generate Diffie-Hellman (DH) parameters. This takes a long time!
 	openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >/dev/null 2>&1
@@ -390,9 +390,9 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 	sed -i -e "s@CUCKOO_PATH="/opt/cuckoo"@CUCKOO_PATH="$cuckoo_path/cuckoo"@" /usr/sbin/cuckooboot
 
 	#Add startup crontab entries
-	(crontab -l -u cuckoo; echo "46 * * * * /usr/sbin/etupdate")| crontab -u cuckoo - >/dev/null 2>&1
-	(crontab -l -u cuckoo; echo "@reboot /usr/sbin/routetor")| crontab -u cuckoo - >/dev/null 2>&1
-	(crontab -l -u cuckoo; echo "@reboot /usr/sbin/cuckooboot")| crontab -u cuckoo - >/dev/null 2>&1
+	(crontab -l -u cuckoo; echo "46 * * * * /usr/sbin/etupdate")| crontab -u cuckoo -
+	(crontab -l -u cuckoo; echo "@reboot /usr/sbin/routetor")| crontab -u cuckoo -
+	(crontab -l -u cuckoo; echo "@reboot /usr/sbin/cuckooboot")| crontab -u cuckoo -
 
 	#Run cuckoo
 	#/usr/sbin/cuckooboot
