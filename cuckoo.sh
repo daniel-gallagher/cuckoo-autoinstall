@@ -287,14 +287,14 @@ EOF
 	pip install -r $cuckoo_path/cuckoo/requirements.txt >/dev/null 2>&1
 	cp /tmp/gen-configs/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
 
-echo -e '\e[35m[+] Installing Cuckoo signatures \e[0m'
+echo -e '\e[93m    [+] Installing signatures \e[0m'
 
 	su - cuckoo <<EOF
 cd $cuckoo_path/cuckoo/utils
 ./community.py -afw >/dev/null 2>&1
 EOF
 
-echo -e '\e[35m[+] Modifing Cuckoo config \e[0m'
+echo -e '\e[93m    [+] Modifying config \e[0m'
 
 	sed -i -e "s@connection =@connection = postgresql://cuckoo:$passwd\@localhost:5432/cuckoo@" $cuckoo_path/cuckoo/conf/cuckoo.conf
 
@@ -342,7 +342,7 @@ echo -e '\e[35m[+] Installing nginx \e[0m'
 	#Install nginx
 	apt-get install nginx apache2-utils -y >/dev/null 2>&1
 
-echo -e '\e[35m[+] Configuring nginx \e[0m'
+echo -e '\e[93m    [+] Configuring \e[0m'
 
 	#Remove default nginx configuration
 	rm /etc/nginx/sites-enabled/default
@@ -364,7 +364,7 @@ echo -e '\e[35m[+] Configuring nginx \e[0m'
 function self_ssl
 {
 
-echo -e '\e[35m[+] Creating Self-signed SSL Certificate \e[0m'
+echo -e '\e[93m    [+] Creating self-signed SSL certificate \e[0m'
 
 	#Create ssl key folder
 	mkdir /etc/nginx/ssl
@@ -372,7 +372,7 @@ echo -e '\e[35m[+] Creating Self-signed SSL Certificate \e[0m'
 	#Generate self-signed certificate
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/cuckoo.key -out /etc/nginx/ssl/cuckoo.crt -subj "/C=XX/ST=XX/L=XX/O=IT/CN=$my_ip" >/dev/null 2>&1
 
-echo -e '\e[35m[+] Generating Diffie-Hellman (DH) parameters (this will take some time) \e[0m'
+echo -e '\e[93m    [+] Generating Diffie-Hellman (DH) parameters (this will take some time) \e[0m'
 
 	#Generate Diffie-Hellman (DH) parameters. This takes a long time!
 	openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >/dev/null 2>&1
