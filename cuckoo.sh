@@ -447,7 +447,7 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 	pip install gunicorn >/dev/null 2>&1
 
 	#Copy default startup script
-	if [ $machine = 'virtualbox' ]; then
+	if [ "$machine" = 'virtualbox' ]; then
 		echo -e '\e[35m[+] Startup script set for virtualbox \e[0m'
 		cp /tmp/virtualbox-configs/cuckooboot /usr/sbin/cuckooboot
 	else
