@@ -33,12 +33,12 @@ my_ip=${3:-$auto_ip} #Default to interface ip on install machine
 cuckoo_passwd=$passwd
 db_passwd=\'$passwd\'
 
+function deps
+{
+
 echo -e "\e[96m[+] Cuckoo Path: $cuckoo_path \e[0m"
 echo -e "\e[96m[+] DB Password: $passwd \e[0m"
 echo -e "\e[96m[+] Web Portal IP: $my_ip \e[0m"
-
-function deps
-{
 
 echo -e '\e[35m[+] APT Update \e[0m'
 
