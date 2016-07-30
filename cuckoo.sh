@@ -22,6 +22,7 @@ function usage
 cuckoo_path=$1
 passwd=$2
 my_ip=$3
+machine=$4
 rand_passwd=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 
 #cuckoo_path=${1:-/opt} #Default path: /opt
@@ -443,7 +444,12 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 	pip install gunicorn >/dev/null 2>&1
 
 	#Copy default startup script
-	cp /tmp/gen-configs/cuckooboot /usr/sbin/cuckooboot
+	if [ $machine = 'virtualbox']; then
+		cp /tmp/virtualbox-configs/cuckooboot /usr/sbin/cuckooboot
+			else
+			cp /tmp/kvm-configs/cuckooboot /usr/sbin/cuckooboot
+	fi
+	
 	chmod +x  /usr/sbin/cuckooboot
 
 	#Modify startup script to fit local environment
@@ -464,19 +470,19 @@ echo -e '\e[93m[+] ***Need To Do: Set up nginx auth user\e[0m'
 }
 
 
-if [ "$1" = '-h' ] then
-    usage
+if [ "$1" = '-h' ]; then
+	usage
 fi
 
-#check if start with root
-if [ $EUID -ne 0 ] then
+#Check if script was run as root
+if [ $EUID -ne 0 ]; then
 	echo 'This script must be run as root'
 	exit 1
 fi
 
-if [ "$4" = 'virtualbox' ] then
+if [ "$4" = 'virtualbox' ]; then
 
-    deps
+	deps
 	postgres
 	virtualbox
 	create_cuckoo_user
