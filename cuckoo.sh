@@ -10,7 +10,7 @@
 function usage
 {
 	echo "Usage: $0 <path> <password> <ip> <machinery>" 
-	#echo '---Optional Arguments---'
+	echo '---Optional Arguments---'
 	echo 'Cuckoo Install Path -> Example /opt' #option 1
 	echo 'Database Password -> PostgreSQL password' #option 2
 	echo 'Public IP -> For web console' #option 3
@@ -19,20 +19,23 @@ function usage
 }
 
 #Variables defined by options at runtime
-cuckoo_path=$1
-passwd=$2
-my_ip=$3
+#cuckoo_path=$1
+#passwd=$2
+#my_ip=$3
 machine=$4
 rand_passwd=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
+auto_ip=$(ip route show | awk '(NR == 2) {print $9}')
 
-#cuckoo_path=${1:-/opt} #Default path: /opt
-#passwd=${2:-$rand_passwd} #Default password is randomish
+cuckoo_path=${1:-/opt} #Default path: /opt
+passwd=${2:-$rand_passwd} #Default password is randomish
+my_ip=${3:-$auto_ip} #Default to interface ip on install machine
 
 cuckoo_passwd=$passwd
 db_passwd=\'$passwd\'
 
-#Additional variables that might be used
-#my_ip=$(ip route show | awk '(NR == 2) {print $9}')
+echo -e "\e[96m[+] Cuckoo Path: $cuckoo_path \e[0m"
+echo -e "\e[96m[+] DB Password: $passwd \e[0m"
+echo -e "\e[96m[+] Web Portal IP: $my_ip \e[0m"
 
 function deps
 {
@@ -251,7 +254,7 @@ function cuckoo_mod
 
 echo -e '\e[35m[+] Installing modified version of Cuckoo \e[0m'
 
-	#Option to install modified version
+	#Option to install modified cuckoo version
 	su - cuckoo <<EOF
 cd
 wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar >/dev/null 2>&1
@@ -284,7 +287,7 @@ function cuckoo_orig
 
 echo -e '\e[35m[+] Installing mainstream version of Cuckoo \e[0m'
 
-	#Option to install original version
+	#Option to install original cuckoo version
 	su - cuckoo <<EOF
 cd
 wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar
@@ -444,15 +447,17 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 	pip install gunicorn >/dev/null 2>&1
 
 	#Copy default startup script
-	if [ $machine = 'virtualbox']; then
+	if [ $machine = 'virtualbox' ]; then
+		echo -e '\e[35m[+] Startup script set for virtualbox \e[0m'
 		cp /tmp/virtualbox-configs/cuckooboot /usr/sbin/cuckooboot
-			else
-			cp /tmp/kvm-configs/cuckooboot /usr/sbin/cuckooboot
+	else
+		echo -e '\e[35m[+] Startup script set for kvm \e[0m'
+		cp /tmp/kvm-configs/cuckooboot /usr/sbin/cuckooboot
 	fi
 	
 	chmod +x  /usr/sbin/cuckooboot
 
-	#Modify startup script to fit local environment
+	#Modify startup script to fit cuckoo install location
 	sed -i -e "s@CUCKOO_PATH="/opt/cuckoo"@CUCKOO_PATH="$cuckoo_path/cuckoo"@" /usr/sbin/cuckooboot
 
 	#Add startup crontab entries
@@ -464,9 +469,7 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 	#/usr/sbin/cuckooboot
 
 echo -e '\e[35m[+] Installation Complete! \e[0m'
-echo -e '\e[93m[+] ***Need To Do: Build sandbox VM*** \e[0m'
-echo -e '\e[93m[+] ***Need To Do: Configure "kvm.conf" for new VM \e[0m'
-echo -e '\e[93m[+] ***Need To Do: Set up nginx auth user\e[0m'
+
 }
 
 
