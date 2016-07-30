@@ -54,6 +54,7 @@ echo -e '\e[35m[+] APT Dist-Upgrade and Autoremove \e[0m'
 echo -e '\e[35m[+] Installing Dependencies \e[0m'
 
 	#Basic dependencies
+	echo -e '\e[93m    [+] Dependencies \e[0m'
 	apt-get install mongodb python python-dev python-pip python-m2crypto swig -y >/dev/null 2>&1
 	apt-get install libvirt-dev upx-ucl libssl-dev unzip p7zip-full libgeoip-dev libjpeg-dev -y >/dev/null 2>&1
 	apt-get install mono-utils ssdeep libfuzzy-dev libimage-exiftool-perl openjdk-8-jre-headless -y >/dev/null 2>&1
@@ -68,6 +69,7 @@ echo -e '\e[35m[+] Installing Dependencies \e[0m'
 	apt-get install wkhtmltopdf xvfb xfonts-100dpi -y >/dev/null 2>&1
 	
 	#Copy default configs
+	echo -e '\e[93m    [+] Copy configs \e[0m'
 	cp -r ./kvm-configs/ /tmp/
 	cp -r ./virtualbox-configs/ /tmp/
 	cp -r ./gen-configs/ /tmp/
@@ -75,18 +77,23 @@ echo -e '\e[35m[+] Installing Dependencies \e[0m'
 echo -e '\e[35m[+] Installing Yara \e[0m'
 
 	#Yara Dependencies
+	echo -e '\e[93m    [+] Dependencies \e[0m'
 	apt-get install libjansson-dev libmagic-dev bison -y >/dev/null 2>&1
 
 	#Configure Yara for Cuckoo and Magic and then install
+	echo -e '\e[93m    [+] Git clone \e[0m'
 	cd /opt
 	git clone https://github.com/plusvic/yara.git >/dev/null 2>&1
 	cd yara
 	./bootstrap.sh >/dev/null 2>&1
+	echo -e '\e[93m    [+] Configure with cuckoo and magic enabled \e[0m'
 	./configure --enable-cuckoo --enable-magic >/dev/null 2>&1
 	make >/dev/null 2>&1
+	echo -e '\e[93m    [+] Install \e[0m'
 	make install >/dev/null 2>&1
 
 	#Install yara-python
+	echo -e '\e[93m    [+] Yara-Python \e[0m'
 	pip install yara-python >/dev/null 2>&1
 
 echo -e '\e[35m[+] Installing ClamAV \e[0m'
@@ -102,12 +109,15 @@ echo -e '\e[35m[+] Installing Pydeep \e[0m'
 echo -e '\e[35m[+] Installing Malheur \e[0m'
 
 	#Install malheur
+	echo -e '\e[93m    [+] Git clone \e[0m'
 	cd /opt
 	git clone https://github.com/rieck/malheur.git >/dev/null 2>&1
 	cd malheur
 	./bootstrap >/dev/null 2>&1
+	echo -e '\e[93m    [+] Configure \e[0m'
 	./configure --prefix=/usr >/dev/null 2>&1
 	make >/dev/null 2>&1
+	echo -e '\e[93m    [+] Install \e[0m'
 	make install >/dev/null 2>&1
 
 echo -e '\e[35m[+] Installing Volatility \e[0m'
@@ -120,13 +130,17 @@ echo -e '\e[35m[+] Installing Volatility \e[0m'
 echo -e '\e[35m[+] Installing PyV8 Javascript Engine (this will take some time) \e[0m'
 
 	#Additional dependencies for PyV8
+	echo -e '\e[93m    [+] Dependencies \e[0m'
 	apt-get install libboost-all-dev -y >/dev/null 2>&1
 
 	#Install PyV8
+	echo -e '\e[93m    [+] Git clone \e[0m'
 	cd /opt
 	git clone https://github.com/buffer/pyv8.git >/dev/null 2>&1
 	cd pyv8
+	echo -e '\e[93m    [+] Build \e[0m'
 	python setup.py build >/dev/null 2>&1
+	echo -e '\e[93m    [+] Install \e[0m'
 	python setup.py install >/dev/null 2>&1
 
 echo -e '\e[35m[+] Configuring TcpDump \e[0m'
@@ -161,7 +175,7 @@ echo -e '\e[35m[+] Installing PostgreSQL \e[0m'
 	apt-get install postgresql-9.5 postgresql-contrib-9.5 libpq-dev -y >/dev/null 2>&1
 	pip install psycopg2 >/dev/null 2>&1
 
-echo -e '\e[35m[+] Configure PostgreSQL DB \e[0m'
+echo -e '\e[35m[+] Configuring PostgreSQL DB \e[0m'
 
 	su - postgres <<EOF
 psql -c "CREATE USER cuckoo WITH PASSWORD $db_passwd;" >/dev/null 2>&1
@@ -177,6 +191,7 @@ function kvm
 echo -e '\e[35m[+] Installing KVM \e[0m'
 
 	#Install KVM and virt-manager
+	echo -e '\e[93m    [+] Install \e[0m'
 	apt-get install qemu-kvm libvirt-bin virt-manager libgl1-mesa-glx -y >/dev/null 2>&1
 
 	#Add current user to kvm and libvirt groups for admin
@@ -184,12 +199,14 @@ echo -e '\e[35m[+] Installing KVM \e[0m'
 	usermod -a -G libvirtd $USER
 
 	#Deactivate default network
+	echo -e '\e[93m    [+] Remove default virtual network \e[0m'
 	virsh net-destroy default >/dev/null 2>&1
 
 	#Remove default network from libvirt configuration
 	virsh net-undefine default >/dev/null 2>&1
 
 	#Create cuckoo network configuration file
+	echo -e '\e[93m    [+] Create cuckoo virtual network \e[0m'
 	cat >/tmp/cuckoo_net.xml <<EOF
 <network>
 	<name>cuckoo</name>
@@ -448,10 +465,10 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 
 	#Copy default startup script
 	if [ "$machine" = 'virtualbox' ]; then
-		echo -e '\e[35m[+] Startup script set for virtualbox \e[0m'
+		echo -e '\e[96m    [+] Startup script set for VirtualBox \e[0m'
 		cp /tmp/virtualbox-configs/cuckooboot /usr/sbin/cuckooboot
 	else
-		echo -e '\e[35m[+] Startup script set for kvm \e[0m'
+		echo -e '\e[96m    [+] Startup script set for KVM \e[0m'
 		cp /tmp/kvm-configs/cuckooboot /usr/sbin/cuckooboot
 	fi
 	
