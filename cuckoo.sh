@@ -41,7 +41,6 @@ echo -e "\e[96m[+] DB Password: $passwd \e[0m"
 echo -e "\e[96m[+] Web Portal IP: $my_ip \e[0m"
 
 echo -e '\e[35m[+] APT Update \e[0m'
-
 	apt-get update -y >/dev/null 2>&1
 
 echo -e '\e[35m[+] APT Upgrade \e[0m'
@@ -54,7 +53,7 @@ echo -e '\e[35m[+] APT Dist-Upgrade and Autoremove \e[0m'
 echo -e '\e[35m[+] Installing Dependencies \e[0m'
 
 	#Basic dependencies
-	echo -e '\e[93m    [+] Dependencies \e[0m'
+	echo -e '\e[93m    [+] Dependencies \e[0m'	
 	apt-get install mongodb python python-dev python-pip python-m2crypto swig -y >/dev/null 2>&1
 	apt-get install libvirt-dev upx-ucl libssl-dev unzip p7zip-full libgeoip-dev libjpeg-dev -y >/dev/null 2>&1
 	apt-get install mono-utils ssdeep libfuzzy-dev libimage-exiftool-perl openjdk-8-jre-headless -y >/dev/null 2>&1
@@ -67,7 +66,7 @@ echo -e '\e[35m[+] Installing Dependencies \e[0m'
 
 	#To generate PDF reports
 	apt-get install wkhtmltopdf xvfb xfonts-100dpi -y >/dev/null 2>&1
-	
+
 	#Copy default configs
 	echo -e '\e[93m    [+] Copy configs \e[0m'
 	cp -r ./kvm-configs/ /tmp/
@@ -89,7 +88,7 @@ echo -e '\e[35m[+] Installing Yara \e[0m'
 	echo -e '\e[93m    [+] Configure with cuckoo and magic enabled \e[0m'
 	./configure --enable-cuckoo --enable-magic >/dev/null 2>&1
 	make >/dev/null 2>&1
-	echo -e '\e[93m    [+] Install \e[0m'
+	echo -e '\e[93m    [+] Installing... \e[0m'
 	make install >/dev/null 2>&1
 
 	#Install yara-python
@@ -117,14 +116,16 @@ echo -e '\e[35m[+] Installing Malheur \e[0m'
 	echo -e '\e[93m    [+] Configure \e[0m'
 	./configure --prefix=/usr >/dev/null 2>&1
 	make >/dev/null 2>&1
-	echo -e '\e[93m    [+] Install \e[0m'
+	echo -e '\e[93m    [+] Installing... \e[0m'
 	make install >/dev/null 2>&1
 
 echo -e '\e[35m[+] Installing Volatility \e[0m'
 
 	#Install volatility
+	echo -e '\e[93m    [+] Dependencies \e[0m'
 	apt-get install python-pil -y >/dev/null 2>&1
 	pip install distorm3 pycrypto openpyxl >/dev/null 2>&1
+	echo -e '\e[93m    [+] Installing... \e[0m'
 	apt-get install volatility -y >/dev/null 2>&1
 
 echo -e '\e[35m[+] Installing PyV8 Javascript Engine (this will take some time) \e[0m'
@@ -138,9 +139,9 @@ echo -e '\e[35m[+] Installing PyV8 Javascript Engine (this will take some time) 
 	cd /opt
 	git clone https://github.com/buffer/pyv8.git >/dev/null 2>&1
 	cd pyv8
-	echo -e '\e[93m    [+] Build \e[0m'
+	echo -e '\e[93m    [+] Build (this is the long part...)\e[0m'
 	python setup.py build >/dev/null 2>&1
-	echo -e '\e[93m    [+] Install \e[0m'
+	echo -e '\e[93m    [+] Installing... \e[0m'
 	python setup.py install >/dev/null 2>&1
 
 echo -e '\e[35m[+] Configuring TcpDump \e[0m'
@@ -191,7 +192,6 @@ function kvm
 echo -e '\e[35m[+] Installing KVM \e[0m'
 
 	#Install KVM and virt-manager
-	echo -e '\e[93m    [+] Install \e[0m'
 	apt-get install qemu-kvm libvirt-bin virt-manager libgl1-mesa-glx -y >/dev/null 2>&1
 
 	#Add current user to kvm and libvirt groups for admin
@@ -200,6 +200,7 @@ echo -e '\e[35m[+] Installing KVM \e[0m'
 
 	#Deactivate default network
 	echo -e '\e[93m    [+] Remove default virtual network \e[0m'
+	
 	virsh net-destroy default >/dev/null 2>&1
 
 	#Remove default network from libvirt configuration
@@ -207,6 +208,7 @@ echo -e '\e[35m[+] Installing KVM \e[0m'
 
 	#Create cuckoo network configuration file
 	echo -e '\e[93m    [+] Create cuckoo virtual network \e[0m'
+	
 	cat >/tmp/cuckoo_net.xml <<EOF
 <network>
 	<name>cuckoo</name>
@@ -468,7 +470,7 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 		echo -e '\e[96m    [+] Startup script set for VirtualBox \e[0m'
 		cp /tmp/virtualbox-configs/cuckooboot /usr/sbin/cuckooboot
 	else
-		echo -e '\e[96m    [+] Startup script set for KVM \e[0m'
+		echo -e '\e[93m    [+] Startup script set for KVM \e[0m'
 		cp /tmp/kvm-configs/cuckooboot /usr/sbin/cuckooboot
 	fi
 	
