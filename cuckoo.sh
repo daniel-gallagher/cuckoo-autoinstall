@@ -53,9 +53,11 @@ echo -e '\e[35m[+] APT Dist-Upgrade and Autoremove \e[0m'
 echo -e '\e[35m[+] Installing Dependencies \e[0m'
 
 	#Basic dependencies
-	echo -e '\e[93m    [+] Dependencies \e[0m'	
+	echo -e '\e[93m    [+] Round 1 of 3 \e[0m'	
 	apt-get install mongodb python python-dev python-pip python-m2crypto swig -y >/dev/null 2>&1
+	echo -e '\e[93m    [+] Round 2 of 3 \e[0m'
 	apt-get install libvirt-dev upx-ucl libssl-dev unzip p7zip-full libgeoip-dev libjpeg-dev -y >/dev/null 2>&1
+	echo -e '\e[93m    [+] Round 3 of 3 \e[0m'
 	apt-get install mono-utils ssdeep libfuzzy-dev libimage-exiftool-perl openjdk-8-jre-headless -y >/dev/null 2>&1
 
 	#Additional dependencies for malheur
