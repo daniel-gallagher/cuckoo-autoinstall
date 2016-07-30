@@ -9,11 +9,12 @@
 
 function usage
 {
-	echo "Usage: $0 <path> <password> <ip>" 
+	echo "Usage: $0 <path> <password> <ip> <machinery>" 
 	#echo '---Optional Arguments---'
 	echo 'Cuckoo Install Path -> Example /opt' #option 1
 	echo 'Database Password -> PostgreSQL password' #option 2
 	echo 'Public IP -> For web console' #option 3
+	echo 'Machinery -> kvm | virtualbox' #option 4
 	exit
 }
 
@@ -61,6 +62,11 @@ echo -e '\e[35m[+] Installing Dependencies \e[0m'
 
 	#To generate PDF reports
 	apt-get install wkhtmltopdf xvfb xfonts-100dpi -y >/dev/null 2>&1
+	
+	#Copy default configs
+	cp -r ./kvm-configs/ /tmp/
+	cp -r ./virtualbox-configs/ /tmp/
+	cp -r ./gen-configs/ /tmp/
 
 echo -e '\e[35m[+] Installing Yara \e[0m'
 
@@ -256,7 +262,7 @@ EOF
 	chmod ug=rwX,o=rX /home/cuckoo/vmshared
 	mv /home/cuckoo/cuckoo-modified $cuckoo_path/cuckoo
 	pip install -r $cuckoo_path/cuckoo/requirements.txt >/dev/null 2>&1
-	cp $cuckoo_path/cuckoo/extra/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
+	cp /tmp/gen-configs/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
 
 echo -e '\e[35m[+] Installing Cuckoo signatures \e[0m'
 
@@ -289,7 +295,7 @@ EOF
 	chmod ug=rwX,o=rX /home/cuckoo/vmshared
 	mv /home/cuckoo/cuckoo $cuckoo_path/cuckoo
 	pip install -r $cuckoo_path/cuckoo/requirements.txt
-	cp $cuckoo_path/cuckoo/extra/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
+	cp /tmp/gen-configs/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
 
 echo -e '\e[35m[+] Installing Cuckoo signatures \e[0m'
 
@@ -319,7 +325,7 @@ echo -e '\e[35m[+] Configuring nginx \e[0m'
 	rm /etc/nginx/sites-enabled/default
 
 	#Create cuckoo web server config
-	cp $cuckoo_path/cuckoo/extra/nginx_config /etc/nginx/sites-available/cuckoo
+	cp /tmp/gen-configs/nginx_config /etc/nginx/sites-available/cuckoo
 
 	#Modify nginx IP for web interface
 	sed -i -e "s@listen IP_Address\:443@listen $my_ip\:443@" /etc/nginx/sites-available/cuckoo
@@ -371,7 +377,7 @@ echo -e '\e[35m[+] Installing Inetsim \e[0m'
 	dpkg -i inetsim_1.2.5-1_all.deb >/dev/null 2>&1
 
 	#Copy default inetsim config
-	cp $cuckoo_path/cuckoo/extra/inetsim.conf /etc/inetsim/inetsim.conf
+	cp /tmp/gen-configs/inetsim.conf /etc/inetsim/inetsim.conf
 
 	#Enable inetsim in default config
 	sed -i -e 's@ENABLED=0@ENABLED=1@' /etc/default/inetsim
@@ -385,7 +391,7 @@ echo -e '\e[35m[+] Installing Tor Proxy \e[0m'
 	apt-get install tor -y >/dev/null 2>&1
 
 	#Copy default tor config
-	cp $cuckoo_path/cuckoo/extra/torrc /etc/tor/torrc
+	cp /tmp/gen-configs/torrc /etc/tor/torrc
 
 	#Restart tor
 	service tor restart
@@ -396,7 +402,7 @@ echo -e '\e[35m[+] Installing Privoxy \e[0m'
 	apt-get install privoxy -y >/dev/null 2>&1
 
 	#Copy default privoxy config
-	cp $cuckoo_path/cuckoo/extra/privoxy_config /etc/privoxy/config
+	cp /tmp/gen-configs/privoxy_config /etc/privoxy/config
 
 	#Restart privoxy
 	service privoxy restart
@@ -421,7 +427,7 @@ echo -e '\e[35m[+] Installing Vsftpd \e[0m'
 	apt-get install vsftpd -y >/dev/null 2>&1
 
 	#Copy vsftpd config file
-	cp $cuckoo_path/cuckoo/extra/vsftpd.conf /etc/vsftpd.conf
+	cp /tmp/gen-configs/vsftpd.conf /etc/vsftpd.conf
 
 	#Restart vsftpd
 	service vsftpd restart
@@ -437,7 +443,7 @@ echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
 	pip install gunicorn >/dev/null 2>&1
 
 	#Copy default startup script
-	cp $cuckoo_path/cuckoo/extra/cuckooboot /usr/sbin/cuckooboot
+	cp /tmp/gen-configs/cuckooboot /usr/sbin/cuckooboot
 	chmod +x  /usr/sbin/cuckooboot
 
 	#Modify startup script to fit local environment
@@ -458,27 +464,39 @@ echo -e '\e[93m[+] ***Need To Do: Set up nginx auth user\e[0m'
 }
 
 
-if [ "$1" = '-h' ]; then
+if [ "$1" = '-h' ] then
     usage
 fi
 
 #check if start with root
-if [ $EUID -ne 0 ]; then
+if [ $EUID -ne 0 ] then
 	echo 'This script must be run as root'
 	exit 1
 fi
 
+if [ "$4" = 'virtualbox' ] then
 
-deps
-postgres
-kvm
-#virtualbox
-create_cuckoo_user
-cuckoo_mod
-#cuckoo_orig
-nginx
-self_ssl
-misc_apps
-startup_script
+    deps
+	postgres
+	virtualbox
+	create_cuckoo_user
+	cuckoo_mod
+	nginx
+	self_ssl
+	misc_apps
+	startup_script
+	
+else
+		
+	deps
+	postgres
+	kvm
+	create_cuckoo_user
+	cuckoo_mod
+	nginx
+	self_ssl
+	misc_apps
+	startup_script
+fi
 
 exit 0
