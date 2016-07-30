@@ -277,7 +277,7 @@ echo -e '\e[35m[+] Installing modified version of Cuckoo \e[0m'
 	su - cuckoo <<EOF
 cd
 wget https://bitbucket.org/mstrobel/procyon/downloads/procyon-decompiler-0.5.30.jar >/dev/null 2>&1
-git clone https://github.com/daniel-gallagher/cuckoo-modified.git >/dev/null 2>&1
+git clone https://github.com/spender-sandbox/cuckoo-modified.git >/dev/null 2>&1
 mkdir vmshared
 cp cuckoo-modified/agent/agent.py vmshared/agent.pyw
 EOF
