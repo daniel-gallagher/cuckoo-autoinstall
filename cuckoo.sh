@@ -84,7 +84,7 @@ echo -e '\e[35m[+] Installing Yara \e[0m'
 	#Configure Yara for Cuckoo and Magic and then install
 	echo -e '\e[93m    [+] Git clone \e[0m'
 	cd /opt
-	git clone https://github.com/plusvic/yara.git >/dev/null 2>&1
+	git clone https://github.com/VirusTotal/yara.git >/dev/null 2>&1
 	cd yara
 	./bootstrap.sh >/dev/null 2>&1
 	echo -e '\e[93m    [+] Configure with cuckoo and magic enabled \e[0m'
