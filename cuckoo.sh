@@ -24,7 +24,7 @@ function usage
 #my_ip=$3
 machine=$4
 rand_passwd=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
-auto_ip=$(ip route show | awk '(NR == 2) {print $9}')
+auto_ip=$(ip route | grep src | awk '{print $9}')
 
 cuckoo_path=${1:-/opt} #Default path: /opt
 passwd=${2:-$rand_passwd} #Default password is randomish
