@@ -21,7 +21,7 @@ Public IP: Attempts to discover public IP and use it during install
 
 Machinery: kvm
 
-Steps that need to take place after running script:
+**Steps that need to take place after running script:**
 
 -Build sandbox VMs in KVM
 
@@ -35,5 +35,9 @@ sudo chown root:www-data /etc/nginx/htpasswd
 sudo chmod u=rw,g=r,o= /etc/nginx/htpasswd
 sudo service nginx restart
 ```
+**To Do List**
+-Finish alternate install option of Virtualbox
+
+-Test alternate install of mainstream version of Cuckoo
 
 Tested on Ubuntu Server 16.04.1 LTS
