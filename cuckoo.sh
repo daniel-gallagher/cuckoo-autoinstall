@@ -1,15 +1,17 @@
 #!/bin/bash
 
+# Thanks to Sean Whalen for this amazing post:
 # https://infosecspeakeasy.org/t/howto-build-a-cuckoo-sandbox/27
 
 #-------------------------------------------#
 #      Install Cuckoo Sandbox Version       #
 #          Tested on Ubuntu 16.04           #
+#             -Daniel Gallagher             #
 #-------------------------------------------#
 
 function usage
 {
-	echo "Usage: $0 <path> <password> <ip> <machinery>" 
+	echo "Usage: $0 <path> <password> <ip> <machinery>"
 	echo '---Optional Arguments---'
 	echo 'Cuckoo Install Path -> Example /opt' #option 1
 	echo 'Database Password -> PostgreSQL password' #option 2
@@ -22,13 +24,15 @@ function usage
 #cuckoo_path=$1
 #passwd=$2
 #my_ip=$3
-machine=$4
+#machine=$4
+
 rand_passwd=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 auto_ip=$(ip route | grep src | awk '{print $9}')
 
 cuckoo_path=${1:-/opt} #Default path: /opt
 passwd=${2:-$rand_passwd} #Default password is randomish
 my_ip=${3:-$auto_ip} #Default to interface ip on install machine
+machine=${4:-kvm} #Default machinery: kvm
 
 cuckoo_passwd=$passwd
 db_passwd=\'$passwd\'
@@ -53,7 +57,7 @@ echo -e '\e[35m[+] APT Dist-Upgrade and Autoremove \e[0m'
 echo -e '\e[35m[+] Installing Dependencies \e[0m'
 
 	#Basic dependencies
-	echo -e '\e[93m    [+] Round 1 of 3 \e[0m'	
+	echo -e '\e[93m    [+] Round 1 of 3 \e[0m'
 	apt-get install mongodb python python-dev python-pip python-m2crypto swig -y >/dev/null 2>&1
 	echo -e '\e[93m    [+] Round 2 of 3 \e[0m'
 	apt-get install libvirt-dev upx-ucl libssl-dev unzip p7zip-full libgeoip-dev libjpeg-dev -y >/dev/null 2>&1
@@ -70,7 +74,7 @@ echo -e '\e[35m[+] Installing Dependencies \e[0m'
 	apt-get install wkhtmltopdf xvfb xfonts-100dpi -y >/dev/null 2>&1
 
 	#Copy default configs
-	echo -e '\e[93m    [+] Copy configs \e[0m'
+	echo -e '\e[93m    [+] Copy Configuration Files \e[0m'
 	cp -r ./kvm-configs/ /tmp/
 	cp -r ./virtualbox-configs/ /tmp/
 	cp -r ./gen-configs/ /tmp/
@@ -82,12 +86,12 @@ echo -e '\e[35m[+] Installing Yara \e[0m'
 	apt-get install libjansson-dev libmagic-dev bison -y >/dev/null 2>&1
 
 	#Configure Yara for Cuckoo and Magic and then install
-	echo -e '\e[93m    [+] Git clone \e[0m'
+	echo -e '\e[93m    [+] Git Clone \e[0m'
 	cd /opt
 	git clone https://github.com/VirusTotal/yara.git >/dev/null 2>&1
 	cd yara
 	./bootstrap.sh >/dev/null 2>&1
-	echo -e '\e[93m    [+] Configure with cuckoo and magic enabled \e[0m'
+	echo -e '\e[93m    [+] Configure with Cuckoo and Magic Enabled \e[0m'
 	./configure --enable-cuckoo --enable-magic >/dev/null 2>&1
 	make >/dev/null 2>&1
 	echo -e '\e[93m    [+] Installing... \e[0m'
@@ -110,7 +114,7 @@ echo -e '\e[35m[+] Installing Pydeep \e[0m'
 echo -e '\e[35m[+] Installing Malheur \e[0m'
 
 	#Install malheur
-	echo -e '\e[93m    [+] Git clone \e[0m'
+	echo -e '\e[93m    [+] Git Clone \e[0m'
 	cd /opt
 	git clone https://github.com/rieck/malheur.git >/dev/null 2>&1
 	cd malheur
@@ -137,7 +141,7 @@ echo -e '\e[35m[+] Installing PyV8 Javascript Engine (this will take some time) 
 	apt-get install libboost-all-dev -y >/dev/null 2>&1
 
 	#Install PyV8
-	echo -e '\e[93m    [+] Git clone \e[0m'
+	echo -e '\e[93m    [+] Git Clone \e[0m'
 	cd /opt
 	git clone https://github.com/buffer/pyv8.git >/dev/null 2>&1
 	cd pyv8
@@ -201,16 +205,16 @@ echo -e '\e[35m[+] Installing KVM \e[0m'
 	usermod -a -G libvirtd $USER
 
 	#Deactivate default network
-	echo -e '\e[93m    [+] Remove default virtual network \e[0m'
-	
+	echo -e '\e[93m    [+] Remove Default Virtual Network \e[0m'
+
 	virsh net-destroy default >/dev/null 2>&1
 
 	#Remove default network from libvirt configuration
 	virsh net-undefine default >/dev/null 2>&1
 
 	#Create cuckoo network configuration file
-	echo -e '\e[93m    [+] Create cuckoo virtual network \e[0m'
-	
+	echo -e '\e[93m    [+] Create Cuckoo Virtual Network \e[0m'
+
 	cat >/tmp/cuckoo_net.xml <<EOF
 <network>
 	<name>cuckoo</name>
@@ -259,7 +263,7 @@ function virtualbox
 function create_cuckoo_user
 {
 
-echo -e '\e[35m[+] Creating cuckoo user \e[0m'
+echo -e '\e[35m[+] Creating Cuckoo User \e[0m'
 
 	#Creates cuckoo user and sets password to DB password for now
 	adduser cuckoo --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password >/dev/null 2>&1
@@ -273,7 +277,7 @@ echo -e '\e[35m[+] Creating cuckoo user \e[0m'
 function cuckoo_mod
 {
 
-echo -e '\e[35m[+] Installing modified version of Cuckoo \e[0m'
+echo -e '\e[35m[+] Installing Modified Version of Cuckoo \e[0m'
 
 	#Option to install modified cuckoo version
 	su - cuckoo <<EOF
@@ -289,14 +293,14 @@ EOF
 	pip install -r $cuckoo_path/cuckoo/requirements.txt >/dev/null 2>&1
 	cp /tmp/gen-configs/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
 
-echo -e '\e[93m    [+] Installing signatures \e[0m'
+echo -e '\e[93m    [+] Installing Signatures \e[0m'
 
 	su - cuckoo <<EOF
 cd $cuckoo_path/cuckoo/utils
 ./community.py -afw >/dev/null 2>&1
 EOF
 
-echo -e '\e[93m    [+] Modifying config \e[0m'
+echo -e '\e[93m    [+] Modifying Config \e[0m'
 
 	sed -i -e "s@connection =@connection = postgresql://cuckoo:$passwd\@localhost:5432/cuckoo@" $cuckoo_path/cuckoo/conf/cuckoo.conf
 
@@ -306,7 +310,7 @@ echo -e '\e[93m    [+] Modifying config \e[0m'
 function cuckoo_orig
 {
 
-echo -e '\e[35m[+] Installing mainstream version of Cuckoo \e[0m'
+echo -e '\e[35m[+] Installing Mainstream Version of Cuckoo \e[0m'
 
 	#Option to install original cuckoo version
 	su - cuckoo <<EOF
@@ -322,14 +326,14 @@ EOF
 	pip install -r $cuckoo_path/cuckoo/requirements.txt
 	cp /tmp/gen-configs/suricata-cuckoo.yaml /etc/suricata/suricata-cuckoo.yaml
 
-echo -e '\e[35m[+] Installing Cuckoo signatures \e[0m'
+echo -e '\e[35m[+] Installing Cuckoo Signatures \e[0m'
 
 	su - cuckoo <<EOF
 cd $cuckoo_path/cuckoo/utils
 ./community.py -afw
 EOF
 
-echo -e '\e[35m[+] Modifing Cuckoo config \e[0m'
+echo -e '\e[35m[+] Modifing Cuckoo Config \e[0m'
 
 	sed -i -e "s@connection =@connection = postgresql://cuckoo:$passwd\@localhost:5432/cuckoo@" $cuckoo_path/cuckoo/conf/cuckoo.conf
 
@@ -339,7 +343,7 @@ echo -e '\e[35m[+] Modifing Cuckoo config \e[0m'
 function nginx
 {
 
-echo -e '\e[35m[+] Installing nginx \e[0m'
+echo -e '\e[35m[+] Installing Nginx \e[0m'
 
 	#Install nginx
 	apt-get install nginx apache2-utils -y >/dev/null 2>&1
@@ -366,7 +370,7 @@ echo -e '\e[93m    [+] Configuring \e[0m'
 function self_ssl
 {
 
-echo -e '\e[93m    [+] Creating self-signed SSL certificate \e[0m'
+echo -e '\e[93m    [+] Creating Self-Signed SSL Certificate \e[0m'
 
 	#Create ssl key folder
 	mkdir /etc/nginx/ssl
@@ -374,7 +378,7 @@ echo -e '\e[93m    [+] Creating self-signed SSL certificate \e[0m'
 	#Generate self-signed certificate
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/cuckoo.key -out /etc/nginx/ssl/cuckoo.crt -subj "/C=XX/ST=XX/L=XX/O=IT/CN=$my_ip" >/dev/null 2>&1
 
-echo -e '\e[93m    [+] Generating Diffie-Hellman (DH) parameters (this will take some time) \e[0m'
+echo -e '\e[93m    [+] Generating Diffie-Hellman (DH) Parameters (this will take some time) \e[0m'
 
 	#Generate Diffie-Hellman (DH) parameters. This takes a long time!
 	openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >/dev/null 2>&1
@@ -462,20 +466,20 @@ echo -e '\e[35m[+] Installing Vsftpd \e[0m'
 function startup_script
 {
 
-echo -e '\e[35m[+] Creating startup script for Cuckoo \e[0m'
+echo -e '\e[35m[+] Creating Startup Script for Cuckoo \e[0m'
 
 	#Install gunicorn
 	pip install gunicorn >/dev/null 2>&1
 
 	#Copy default startup script
 	if [ "$machine" = 'virtualbox' ]; then
-		echo -e '\e[96m    [+] Startup script set for VirtualBox \e[0m'
+		echo -e '\e[96m    [+] Startup Script Set for VirtualBox \e[0m'
 		cp /tmp/virtualbox-configs/cuckooboot /usr/sbin/cuckooboot
 	else
-		echo -e '\e[93m    [+] Startup script set for KVM \e[0m'
+		echo -e '\e[93m    [+] Startup Script Set for KVM \e[0m'
 		cp /tmp/kvm-configs/cuckooboot /usr/sbin/cuckooboot
 	fi
-	
+
 	chmod +x  /usr/sbin/cuckooboot
 
 	#Modify startup script to fit cuckoo install location
@@ -515,9 +519,9 @@ if [ "$4" = 'virtualbox' ]; then
 	self_ssl
 	misc_apps
 	startup_script
-	
+
 else
-		
+
 	deps
 	postgres
 	kvm
