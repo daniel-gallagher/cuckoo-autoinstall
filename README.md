@@ -1,11 +1,13 @@
 # cuckoo-autoinstall
-The script "cuckoo.sh" will perform a full base install of the modified Cuckoo sandbox following the steps listed here: https://infosecspeakeasy.org/t/howto-build-a-cuckoo-sandbox/27
+The script "cuckoo.sh" intends to perform a full base install of the modified Cuckoo sandbox following the steps listed here: https://infosecspeakeasy.org/t/howto-build-a-cuckoo-sandbox/27
+
+This script is nearly complete, but still may have some bugs. I built it out of necessity after I re-installed Cuckoo a few times trying to get the setup correct. Each install used to take a few hours, whereas this script should complete in under 15 minutes on a reasonably powered machine.
 
 -Usage-
 ```
 sudo ./cuckoo <cuckoo_path> <db_pass> <ip> <machinery>
 ```
-
+**NOTE: Alternate install options have not been completed. For now, run without arguments.**
 If no arguments are provided, it will default to the following:
 
 Cuckoo Path: /opt
@@ -18,9 +20,9 @@ Machinery: kvm
 
 Steps that need to take place after running script:
 
--Build sandbox VMs
+-Build sandbox VMs in KVM
 
--Modify configuration for new sandbox VMs
+-Modify Cuckoo conf files for new sandbox VMs
 
 -Create user/pass for web portal
 ```
