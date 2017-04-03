@@ -162,7 +162,7 @@ echo -e '\e[35m[+] Installing Suricata \e[0m'
 	echo "alert http any any -> any any (msg:\"FILE store all\"; filestore; noalert; sid:15; rev:1;)"  | sudo tee /etc/suricata/rules/cuckoo.rules >/dev/null 2>&1
 
 echo -e '\e[35m[+] Installing ETUpdate \e[0m'
- 
+
 	#Install ETUpdate
 	cd /opt
 	git clone https://github.com/seanthegeek/etupdate.git >/dev/null 2>&1
@@ -265,9 +265,8 @@ function create_cuckoo_user
 
 echo -e '\e[35m[+] Creating Cuckoo User \e[0m'
 
-	#Creates cuckoo user and sets password to DB password for now
-	adduser cuckoo --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password >/dev/null 2>&1
-	echo "cuckoo:$cuckoo_passwd" | chpasswd >/dev/null 2>&1
+	#Creates cuckoo system user
+	adduser --system cuckoo >/dev/null 2>&1
 	usermod -L cuckoo
 	usermod -a -G kvm cuckoo
 	usermod -a -G libvirtd cuckoo
