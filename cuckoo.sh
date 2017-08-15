@@ -31,7 +31,7 @@ auto_ip=$(ip route | grep src | awk '{print $9}')
 
 cuckoo_path=${1:-/opt} #Default path: /opt
 passwd=${2:-$rand_passwd} #Default password is randomish
-my_ip=${3:-$auto_ip} #Default to interface ip on install machine
+my_ip=${3:-$auto_ip} #Default IP is interface on install machine
 machine=${4:-kvm} #Default machinery: kvm
 
 cuckoo_passwd=$passwd
