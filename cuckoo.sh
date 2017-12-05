@@ -20,12 +20,6 @@ function usage
 	exit
 }
 
-#Variables defined by options at runtime
-#cuckoo_path=$1
-#passwd=$2
-#my_ip=$3
-#machine=$4
-
 rand_passwd=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 auto_ip=$(ip route | grep src | awk '{print $9}')
 
